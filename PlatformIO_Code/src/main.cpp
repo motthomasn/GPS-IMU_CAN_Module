@@ -17,10 +17,11 @@
  * Version 1.0  02-07-2019      Original code version for Microsquirt based logger config
  * Version 2.0  04-06-2020      Updated code to work with PlatformIO. CAN message IDs & data adjusted to suit F88R GPS data input
  * Version 2.1  15-08-2020      CAN message IDs & data output adjusted to suit F88R basic GPS data input & additional inputs via user defined inputs
+ * Version 2.2  12-06-2023      CAN message IDs updated to match CAN config v3.0
  * 
  * This code is designed for use with the CBR015-0004 GPS CAN MODULE ASSY utilising CBR015-0005 Rev00 PCB layout
- * CAN Config:  200815_LOGGER_CAN_CONFIG_v2.1.xlsx
- * Calibration: CBR250RRi_1.657.1_01-016
+ * CAN Config:  CBR250RRi_CAN_CONFIG_v3.0.dbc
+ * Calibration: CBR250RRi_1.657.1_07-052
  * Messages are sent with MSB First or Big Endian byte order
  * 
  * This code assumes that the GPS breakout board has been preconfigured to the below settings and these settings written to flash memory
@@ -53,8 +54,7 @@
 //===============================================================================================
 // User Config variables
 // Define variables most likely to be changed by user
-#define baseMsgID1 0x680 // CAN message ID for Long/Lat & Speed/Altitude data
-#define baseMsgID2 0x641 // CAN message ID for remaining data
+#define baseMsgID 0x200 // CAN message ID for Long/Lat data
 #define can_speed 500000 // CAN-Bus baud rate in bps
 #define genMsgLen 8      // CAN message size in bytes
 
@@ -116,7 +116,7 @@ void CAN_Send()
   // time to scale variables, 8-9us
 
   // Assemble data bytes
-  // ID 0x680
+  // ID 0x200
   txmsg1.buf[3] = byte(gpsLatitude & 0x000000ffUL);
   txmsg1.buf[2] = byte((gpsLatitude & 0x0000ff00UL) >> 8);
   txmsg1.buf[1] = byte((gpsLatitude & 0x00ff0000UL) >> 16);
@@ -127,13 +127,13 @@ void CAN_Send()
   txmsg1.buf[4] = byte((gpsLongitude & 0xff000000UL) >> 24);
   // time to build message, 1us
 
-  // ID 0x681
+  // ID 0x201
   txmsg2.buf[1] = byte(gpsSpeedInt & 0x00ffUL);
   txmsg2.buf[0] = byte((gpsSpeedInt & 0xff00UL) >> 8);
   txmsg2.buf[3] = byte(gpsAltitudeInt & 0x00ffUL);
   txmsg2.buf[2] = byte((gpsAltitudeInt & 0xff00UL) >> 8);
 
-  // ID 0x641
+  // ID 0x202
   txmsg3.buf[1] = byte(AccelYInt & 0x00ffUL);
   txmsg3.buf[0] = byte((AccelYInt & 0xff00UL) >> 8);
   txmsg3.buf[3] = byte(AccelXInt & 0x00ffUL);
@@ -143,7 +143,7 @@ void CAN_Send()
   txmsg3.buf[7] = byte(GyroXInt & 0x00ffUL);
   txmsg3.buf[6] = byte((GyroXInt & 0xff00UL) >> 8);
 
-  // ID 0x642
+  // ID 0x203
   txmsg4.buf[1] = byte(GyroYInt & 0x00ffUL);
   txmsg4.buf[0] = byte((GyroYInt & 0xff00UL) >> 8);
   txmsg4.buf[3] = byte(GyroZInt & 0x00ffUL);
@@ -297,10 +297,10 @@ void setup()
   Can0.begin(can_speed);
 
   // Define CAN IDs here
-  txmsg1.id = baseMsgID1;
-  txmsg2.id = (baseMsgID1 + 1);
-  txmsg3.id = baseMsgID2;
-  txmsg4.id = (baseMsgID2 + 1);
+  txmsg1.id = baseMsgID;
+  txmsg2.id = (baseMsgID + 1);
+  txmsg3.id = (baseMsgID + 2);
+  txmsg4.id = (baseMsgID + 3);
 
   txmsg1.len = genMsgLen;
   txmsg2.len = genMsgLen;
